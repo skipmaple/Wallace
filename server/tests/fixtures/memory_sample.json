@@ -1,0 +1,9 @@
+{
+  "nickname": "小明",
+  "preferences": ["喜欢听音乐", "喜欢喝咖啡"],
+  "interests": ["编程", "天文"],
+  "recent_topics": ["聊了天气", "讨论了Python"],
+  "important_dates": {"birthday": "03-15"},
+  "interaction_count": 42,
+  "first_met": "2024-01-01"
+}

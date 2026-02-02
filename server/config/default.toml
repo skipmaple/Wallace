@@ -1,0 +1,68 @@
+# ============================================================
+# Wallace PC Server 默认配置
+# 环境变量可覆盖任意字段，前缀 WALLACE_，双下划线分隔层级
+# 例如：WALLACE_LLM__MODEL=llama3:8b
+# ============================================================
+
+[server]
+host = "0.0.0.0"              # 监听地址，局域网访问保持 0.0.0.0
+port = 8000                    # HTTP / WebSocket 端口
+log_level = "INFO"             # 可选: DEBUG / INFO / WARNING / ERROR
+
+[asr]
+# Faster-Whisper 语音识别
+model = "large-v3-turbo"       # 模型名，首次启动自动下载 (~1.5GB)
+device = "cuda"                # cuda = GPU 加速（推荐）; cpu = 无显卡时使用
+compute_type = "float16"       # float16 = GPU 默认; int8 = 低显存; float32 = CPU
+language = "zh"                # 识别语言，固定中文
+vad_threshold = 0.5            # Silero VAD 灵敏度 (0~1)，越高越严格
+
+[llm]
+# Ollama 大语言模型
+# 需要预先安装 Ollama 并拉取模型: ollama pull deepseek-r1:8b
+base_url = "http://localhost:11434"   # Ollama API 地址
+model = "deepseek-r1:8b"             # 模型名，可改为其他 Ollama 支持的模型
+temperature = 0.7                     # 生成随机性 (0~1)，越高越多样
+max_tokens = 512                      # 单次回复最大 token 数
+max_history_turns = 10                # 对话历史保留轮数（超出截断最早的）
+health_check_interval = 60            # 健康检查间隔（秒），检测 Ollama 是否在线
+
+[tts]
+# 双 TTS 后端: edge = 微软云端(免费/低延迟), cosyvoice = 本地GPU(方言支持)
+default_backend = "edge"              # 默认后端: edge / cosyvoice
+edge_voice = "zh-CN-XiaoxiaoNeural"   # Edge-TTS 音色，可选列表见 edge-tts --list-voices
+cosyvoice_url = "http://localhost:9880"  # CosyVoice 2 本地服务地址（需另行部署）
+cosyvoice_voice = "default"              # CosyVoice 音色
+
+[mqtt]
+# 智能家居 MQTT 连接（可选，不配置则 MQTT 功能降级跳过）
+broker = "localhost"           # MQTT Broker 地址
+port = 1883                    # MQTT 端口
+username = ""                  # 留空 = 无认证
+password = ""                  # 留空 = 无认证
+topic_prefix = "wallace/home"  # Topic 前缀，格式: {prefix}/{device}/{action}
+reconnect_interval = 5         # 断连后重连间隔（秒）
+
+[care]
+# 主动关怀定时任务
+sedentary_interval_hours = 2   # 久坐提醒间隔（小时）
+morning_time = "07:30"         # 早安问候时间 (HH:MM)
+evening_time = "22:00"         # 晚安提醒时间 (HH:MM)
+push_timeout = 30              # 推送冲突等待超时（秒），超时则丢弃本次推送
+
+[sensor]
+# 传感器阈值与告警
+report_interval = 10           # ESP32 传感器上报周期（秒），仅供参考，实际由固件控制
+alert_cooldown = 300           # 同类型告警最短间隔（秒），避免重复打扰
+air_quality_threshold = 200    # MQ-135 空气质量告警阈值（越大越差）
+light_dark_threshold = 50      # BH1750 低光告警阈值 (lux)，低于此值提示开灯
+temp_high = 35                 # 高温告警阈值 (°C)
+temp_low = 10                  # 低温告警阈值 (°C)
+proximity_default_present = true  # 未收到 VL53L0X 距离数据时，默认用户在旁边
+
+[weather]
+# 天气 API（用于早安天气播报，可选）
+# 注册免费 key: https://www.seniverse.com/
+api_url = "https://api.seniverse.com/v3/weather/now.json"
+api_key = ""                   # ← 填入你的心知天气 API key，留空则早安不含天气
+city = "beijing"               # 城市拼音，如 shanghai / guangzhou / chengdu

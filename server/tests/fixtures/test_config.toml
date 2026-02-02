@@ -1,0 +1,53 @@
+[server]
+host = "127.0.0.1"
+port = 8999
+log_level = "DEBUG"
+
+[asr]
+model = "tiny"
+device = "cpu"
+compute_type = "float32"
+language = "zh"
+vad_threshold = 0.5
+
+[llm]
+base_url = "http://localhost:11434"
+model = "deepseek-r1:8b"
+temperature = 0.7
+max_tokens = 64
+max_history_turns = 3
+health_check_interval = 5
+
+[tts]
+default_backend = "edge"
+edge_voice = "zh-CN-XiaoxiaoNeural"
+cosyvoice_url = "http://localhost:9880"
+cosyvoice_voice = "default"
+
+[mqtt]
+broker = "localhost"
+port = 1883
+username = ""
+password = ""
+topic_prefix = "wallace/test"
+reconnect_interval = 1
+
+[care]
+sedentary_interval_hours = 2
+morning_time = "07:30"
+evening_time = "22:00"
+push_timeout = 5
+
+[sensor]
+report_interval = 10
+alert_cooldown = 10
+air_quality_threshold = 200
+light_dark_threshold = 50
+temp_high = 35
+temp_low = 10
+proximity_default_present = true
+
+[weather]
+api_url = "https://api.seniverse.com/v3/weather/now.json"
+api_key = "test_key"
+city = "beijing"

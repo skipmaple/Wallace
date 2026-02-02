@@ -1,0 +1,21 @@
+# Python virtual environments
+.venv/
+server/.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDE / Editor
+.vscode/settings.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS / temp files
+*.tmp
+NDH6SA~M
+Thumbs.db
+Desktop.ini
