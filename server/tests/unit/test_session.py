@@ -7,7 +7,7 @@ import asyncio
 import numpy as np
 import pytest
 
-from wallace.ws.session import PipelineState, Session, SensorData, UserMemory
+from wallace.ws.session import PipelineState, Session, UserMemory
 
 
 class TestSessionCreation:

@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-import json
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable
+from typing import Any, Callable
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from starlette.testclient import TestClient
 
 from wallace.config import Settings, load_settings
-from wallace.ws.session import UserMemory
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 

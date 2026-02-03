@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import time
 
 import pytest
-from freezegun import freeze_time
 
 from wallace.config import SensorConfig
 from wallace.sensor import SensorProcessor

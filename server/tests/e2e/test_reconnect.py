@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 
 class TestSessionRestore:
@@ -140,7 +139,7 @@ class TestMultipleUsers:
             client_stay = E2EWebSocketClient(ws_stay)
 
             # 另一个用户连接后断开
-            with client.websocket_connect("/ws/user_leave") as ws_leave:
+            with client.websocket_connect("/ws/user_leave"):
                 pass  # 立即断开
 
             # 留下的用户应仍能正常工作

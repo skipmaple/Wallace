@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest

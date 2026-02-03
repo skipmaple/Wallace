@@ -6,12 +6,12 @@ import asyncio
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from fastapi import WebSocket, WebSocketDisconnect
 
 from wallace.ws.protocol import PongMessage, SessionRestoreMessage, parse_esp32_message
-from wallace.ws.session import PipelineState, Session
+from wallace.ws.session import Session
 
 if TYPE_CHECKING:
     from wallace.pipeline.orchestrator import Orchestrator
@@ -109,7 +109,7 @@ class WebSocketHandler:
             return
 
         try:
-            parsed = parse_esp32_message(data)
+            parse_esp32_message(data)  # validate message format
         except ValueError as e:
             logger.warning("Unknown message from %s: %s", session.user_id, e)
             return
@@ -176,7 +176,6 @@ class WebSocketHandler:
         value = data.get("value")
 
         if event == "personality_switch":
-            from wallace.pipeline.llm import LLMClient
 
             session.personality = value
             session.chat_history.clear()

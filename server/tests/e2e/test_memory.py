@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock
 
-import pytest
 
-from wallace.ws.session import UserMemory
 
 from .conftest import create_llm_stream_mock
 
@@ -89,7 +87,7 @@ class TestMemoryPersistence:
 
         with ws_client(user_id=user_id) as ws:
             session = e2e_app.state.sessions.get(user_id)
-            initial_count = session.memory.interaction_count
+            _initial_count = session.memory.interaction_count  # noqa: F841
 
             ws.send_audio_start()
             ws.send_bytes(b"\x00" * 1024)

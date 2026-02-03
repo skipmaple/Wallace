@@ -8,7 +8,6 @@ import pytest
 
 from .conftest import (
     assert_has_binary_frames,
-    assert_message_sequence,
     create_llm_stream_mock,
 )
 
