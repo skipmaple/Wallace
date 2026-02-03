@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import tempfile
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,7 @@ class MemoryStore:
         self._file = data_dir / f"{user_id}.json"
         self._last_sync: float = 0.0
         self._last_snapshot: dict[str, Any] = {}
+        self._lock = threading.Lock()  # 线程锁保证并发写入安全
 
     def load(self) -> UserMemory:
         """从 JSON 文件加载记忆。文件不存在或损坏则返回默认空记忆。"""
@@ -43,18 +45,20 @@ class MemoryStore:
             return UserMemory()
 
     def save(self, memory: UserMemory) -> None:
-        """保存记忆到 JSON 文件（原子写入：临时文件 + rename）。"""
+        """保存记忆到 JSON 文件（原子写入：临时文件 + rename）。线程安全。"""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         data = memory.to_dict()
-        # 原子写入
-        fd, tmp_path = tempfile.mkstemp(dir=self.data_dir, suffix=".tmp")
-        try:
-            with open(fd, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            Path(tmp_path).replace(self._file)
-        except Exception:
-            Path(tmp_path).unlink(missing_ok=True)
-            raise
+        # 使用线程锁保证并发安全（Windows 上 rename 可能因文件被占用而失败）
+        with self._lock:
+            # 原子写入
+            fd, tmp_path = tempfile.mkstemp(dir=self.data_dir, suffix=".tmp")
+            try:
+                with open(fd, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                Path(tmp_path).replace(self._file)
+            except Exception:
+                Path(tmp_path).unlink(missing_ok=True)
+                raise
 
     def has_changes(self, memory: UserMemory) -> bool:
         """检查记忆是否有变更。"""

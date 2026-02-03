@@ -80,8 +80,8 @@ class TestSave:
         tmp_files = list(tmp_data_dir.glob("*.tmp"))
         assert len(tmp_files) == 0
 
-    def test_concurrent_saves(self, store):
-        """两个并发 save 不应损坏文件。"""
+    def test_sequential_saves(self, store):
+        """顺序 save 应正确保存最后一次写入。"""
         mem1 = UserMemory(nickname="first")
         mem2 = UserMemory(nickname="second")
         store.save(mem1)
@@ -89,6 +89,63 @@ class TestSave:
         loaded = store.load()
         # 最后一次 save 胜出
         assert loaded.nickname == "second"
+
+    def test_concurrent_saves_thread_safety(self, store, tmp_data_dir):
+        """真正并发的多线程 save 不应损坏文件。
+
+        根据 architecture.md:
+        - 并发写入安全 | 两个协程同时 save → 文件不损坏（使用写入临时文件 + rename）
+        """
+        import threading
+        import random
+
+        tmp_data_dir.mkdir(parents=True, exist_ok=True)
+
+        errors = []
+
+        def save_worker(worker_id: int, iterations: int):
+            """工作线程：多次保存带有唯一标识的记忆。"""
+            try:
+                for i in range(iterations):
+                    mem = UserMemory(
+                        nickname=f"worker_{worker_id}_iter_{i}",
+                        interests=[f"interest_{worker_id}"],
+                        interaction_count=worker_id * 1000 + i,
+                    )
+                    store.save(mem)
+                    # 随机短暂延迟增加竞争
+                    if random.random() < 0.3:
+                        time.sleep(0.001)
+            except Exception as e:
+                errors.append((worker_id, e))
+
+        # 启动多个并发线程
+        threads = []
+        num_workers = 5
+        iterations_per_worker = 10
+
+        for worker_id in range(num_workers):
+            t = threading.Thread(target=save_worker, args=(worker_id, iterations_per_worker))
+            threads.append(t)
+            t.start()
+
+        # 等待所有线程完成
+        for t in threads:
+            t.join()
+
+        # 验证：无错误发生
+        assert len(errors) == 0, f"并发写入出错: {errors}"
+
+        # 验证：文件可正常加载且数据完整
+        loaded = store.load()
+        assert loaded.nickname is not None
+        assert len(loaded.nickname) > 0
+        # nickname 应该是某个 worker 的某次迭代结果
+        assert "worker_" in loaded.nickname
+
+        # 验证：无残留的 .tmp 文件
+        tmp_files = list(tmp_data_dir.glob("*.tmp"))
+        assert len(tmp_files) == 0, "不应有残留的 .tmp 文件"
 
 
 class TestChangeDetection:

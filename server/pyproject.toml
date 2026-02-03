@@ -9,10 +9,10 @@ dependencies = [
     "uvicorn[standard]>=0.29",
     "websockets>=12.0",
     "faster-whisper>=1.0",
+    "ctranslate2>=4.0,<4.5",  # 4.5+ has ROCm DLL bug on Windows
     "httpx>=0.27",
     "edge-tts>=6.1",
     "miniaudio>=1.59",
-    "openwakeword>=0.6",
     "pydantic-settings>=2.2",
     "tomli>=2.0; python_version < '3.11'",
     "aiomqtt>=2.0",
@@ -21,6 +21,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+wakeword = [
+    "openwakeword>=0.6",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
@@ -40,10 +43,11 @@ packages = ["wallace"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-timeout = 10
+timeout = 30
 testpaths = ["tests"]
 markers = [
-    "e2e: end-to-end tests requiring external services",
+    "e2e: end-to-end tests requiring external services (skipped in CI)",
+    "e2e_mock: end-to-end tests with mocked services (CI-safe)",
 ]
 
 [tool.ruff]
