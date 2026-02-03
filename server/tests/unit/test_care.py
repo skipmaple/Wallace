@@ -84,7 +84,6 @@ class TestWeatherFetch:
     """天气 API。"""
 
     async def test_weather_success(self, care_scheduler):
-        import httpx
 
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()

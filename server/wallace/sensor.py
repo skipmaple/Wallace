@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from wallace.config import SensorConfig
-    from wallace.ws.session import SensorData, Session
+    from wallace.ws.session import Session
 
 
 class SensorProcessor:

@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 from unittest.mock import AsyncMock
 
-import pytest
 
 from .conftest import create_llm_stream_mock, create_tts_mock
 

@@ -138,7 +138,7 @@ class TestCommandResultCallback:
         """订阅设备状态 topic。"""
         mqtt_manager._connected = True
 
-        with patch("wallace.smarthome.mqtt.aiomqtt") as mock_aiomqtt:
+        with patch("wallace.smarthome.mqtt.aiomqtt"):
             mock_client = AsyncMock()
             mqtt_manager._client = mock_client
 

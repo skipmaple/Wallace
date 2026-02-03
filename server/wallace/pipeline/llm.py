@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from wallace.emotion import Mood, extract_mood
 
 if TYPE_CHECKING:
     from wallace.config import LLMConfig

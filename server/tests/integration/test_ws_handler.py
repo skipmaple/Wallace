@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
-import numpy as np
 import pytest
 
 from wallace.config import SensorConfig
@@ -16,7 +14,7 @@ from wallace.config import MQTTConfig
 from wallace.smarthome.mqtt import MQTTManager
 from wallace.wakeword import WakewordVerifier
 from wallace.ws.handler import WebSocketHandler
-from wallace.ws.session import PipelineState, Session
+from wallace.ws.session import Session
 
 
 @pytest.fixture
@@ -72,8 +70,8 @@ class TestMessageRouting:
 
         await handler.handle_connection(mock_ws, "u1")
 
-        session = sessions.get("u1")
-        # session is removed after disconnect, check was processed without error
+        # session is removed after disconnect
+        assert sessions.get("u1") is None
 
     async def test_binary_frame_appends_audio(self, handler, sessions, mock_ws):
         mock_ws.inject_bytes(b"\x00" * 1024)
