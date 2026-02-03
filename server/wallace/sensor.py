@@ -89,8 +89,8 @@ class SensorProcessor:
         for alert_type, triggered, suggestion in checks:
             if not triggered:
                 continue
-            last_time = self._last_alert_time.get(alert_type, 0.0)
-            if now - last_time < self.config.alert_cooldown:
+            last_time = self._last_alert_time.get(alert_type)
+            if last_time is not None and now - last_time < self.config.alert_cooldown:
                 continue
             self._last_alert_time[alert_type] = now
             alerts.append((alert_type, suggestion))
