@@ -60,10 +60,19 @@ class Orchestrator:
         # 先保存状态，因为 await 后任务的 except 处理可能改变状态
         was_speaking = session.state == PipelineState.SPEAKING
 
+        # 取消主流水线任务
         if session.pipeline_task and not session.pipeline_task.done():
             session.pipeline_task.cancel()
             try:
                 await session.pipeline_task
+            except asyncio.CancelledError:
+                pass
+
+        # 取消随机冷知识任务
+        if session.random_fact_task and not session.random_fact_task.done():
+            session.random_fact_task.cancel()
+            try:
+                await session.random_fact_task
             except asyncio.CancelledError:
                 pass
 
@@ -73,6 +82,7 @@ class Orchestrator:
 
         session.state = PipelineState.IDLE
         session.pipeline_task = None
+        session.random_fact_task = None
 
     async def _run_pipeline(self, session: Session) -> None:
         """完整流水线：ASR → LLM → TTS。"""

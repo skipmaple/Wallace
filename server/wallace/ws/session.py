@@ -71,6 +71,7 @@ class Session:
 
         # 流水线
         self.pipeline_task: asyncio.Task | None = None
+        self.random_fact_task: asyncio.Task | None = None
         self.pipeline_lock = asyncio.Lock()
         self.audio_buffer = bytearray()
         self.wakeword_confirmed = asyncio.Event()

@@ -184,8 +184,9 @@ class WebSocketHandler:
             session.treehouse_mode = bool(value)
 
         elif event == "shake":
-            # 异步触发冷知识生成，不阻塞事件循环
-            asyncio.create_task(self._orchestrator.push_random_fact(session))
+            # 异步触发冷知识生成，跟踪任务以便后续取消
+            task = asyncio.create_task(self._orchestrator.push_random_fact(session))
+            session.random_fact_task = task
 
         elif event == "touch":
             pass  # optional: log interaction

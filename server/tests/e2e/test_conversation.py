@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock
 
-import pytest
-
 from .conftest import (
     assert_has_binary_frames,
     create_llm_stream_mock,
