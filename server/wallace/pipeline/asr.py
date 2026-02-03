@@ -48,10 +48,18 @@ class ASREngine:
         return "".join(seg.text for seg in segments).strip()
 
     def vad_has_speech(self, audio: np.ndarray) -> bool:
-        """Silero VAD 检测是否包含语音。"""
+        """检测音频是否包含语音。
+
+        使用简单的能量检测：RMS 能量高于阈值视为有语音。
+        对于 float32 归一化音频（范围 -1 到 1），默认阈值 0.01。
+        """
         if audio.size == 0:
             return False
-        # TODO: Silero VAD integration
-        # model = silero_vad.load()
-        # return model(audio).max() > self.config.vad_threshold
-        return True  # placeholder
+
+        # 计算 RMS 能量
+        rms = np.sqrt(np.mean(audio ** 2))
+
+        # 能量阈值（可配置，默认 0.01 适合 float32 归一化音频）
+        threshold = getattr(self.config, "vad_threshold", 0.01)
+
+        return rms > threshold

@@ -125,3 +125,186 @@ class TestTreehouseMode:
     def test_treehouse_flag(self, session):
         session.treehouse_mode = True
         assert session.treehouse_mode is True
+
+
+class TestStreamParsing:
+    """Ollama 流式 JSON lines 解析。"""
+
+    async def test_stream_tokens(self, llm_client):
+        """正常流式响应应逐 token 产出。"""
+        # Mock Ollama 返回的流式 JSON lines
+        stream_lines = [
+            '{"message":{"content":"你"},"done":false}',
+            '{"message":{"content":"好"},"done":false}',
+            '{"message":{"content":"！"},"done":false}',
+            '{"message":{"content":""},"done":true}',
+        ]
+
+        class MockAsyncIterator:
+            def __init__(self, lines):
+                self._lines = iter(lines)
+
+            def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._lines)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+
+            def aiter_lines(self):
+                return MockAsyncIterator(stream_lines)
+
+        # 创建 async context manager mock
+        import contextlib
+
+        @contextlib.asynccontextmanager
+        async def mock_stream(method, url, json):
+            yield MockResponse()
+
+        llm_client._client = AsyncMock()
+        llm_client._client.stream = mock_stream
+
+        tokens = []
+        async for token in llm_client.chat_stream([{"role": "user", "content": "hi"}]):
+            tokens.append(token)
+
+        assert tokens == ["你", "好", "！"]
+
+    async def test_stream_empty_lines_skipped(self, llm_client):
+        """空行应被跳过。"""
+        stream_lines = [
+            '{"message":{"content":"test"},"done":false}',
+            "",  # 空行
+            "   ",  # 空白行
+            '{"message":{"content":""},"done":true}',
+        ]
+
+        class MockAsyncIterator:
+            def __init__(self, lines):
+                self._lines = iter(lines)
+
+            def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._lines)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+
+            def aiter_lines(self):
+                return MockAsyncIterator(stream_lines)
+
+        import contextlib
+
+        @contextlib.asynccontextmanager
+        async def mock_stream(method, url, json):
+            yield MockResponse()
+
+        llm_client._client = AsyncMock()
+        llm_client._client.stream = mock_stream
+
+        tokens = []
+        async for token in llm_client.chat_stream([{"role": "user", "content": "hi"}]):
+            tokens.append(token)
+
+        assert tokens == ["test"]
+
+    async def test_stream_stops_on_done(self, llm_client):
+        """收到 done:true 应停止。"""
+        stream_lines = [
+            '{"message":{"content":"first"},"done":false}',
+            '{"message":{"content":""},"done":true}',
+            '{"message":{"content":"should_not_yield"},"done":false}',
+        ]
+
+        class MockAsyncIterator:
+            def __init__(self, lines):
+                self._lines = iter(lines)
+
+            def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._lines)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+
+            def aiter_lines(self):
+                return MockAsyncIterator(stream_lines)
+
+        import contextlib
+
+        @contextlib.asynccontextmanager
+        async def mock_stream(method, url, json):
+            yield MockResponse()
+
+        llm_client._client = AsyncMock()
+        llm_client._client.stream = mock_stream
+
+        tokens = []
+        async for token in llm_client.chat_stream([{"role": "user", "content": "hi"}]):
+            tokens.append(token)
+
+        assert tokens == ["first"]
+        assert "should_not_yield" not in tokens
+
+    async def test_stream_no_client_raises(self, llm_client):
+        """客户端未初始化应抛异常。"""
+        llm_client._client = None
+        with pytest.raises(RuntimeError, match="not started"):
+            async for _ in llm_client.chat_stream([{"role": "user", "content": "hi"}]):
+                pass
+
+
+class TestPersonalityPrompts:
+    """不同人格 prompt 验证。"""
+
+    @pytest.mark.parametrize("personality,expected_keyword", [
+        ("normal", "温暖"),
+        ("cool", "高冷"),
+        ("talkative", "话痨"),
+        ("tsundere", "傲娇"),
+    ])
+    def test_personality_prompts_unique(self, llm_client, session, personality, expected_keyword):
+        """各人格应有独特的 system prompt。"""
+        session.personality = personality
+        messages = llm_client.build_messages(session, "你好")
+        system_prompt = messages[0]["content"]
+
+        # 验证关键词存在
+        assert expected_keyword in system_prompt, \
+            f"Personality '{personality}' should contain '{expected_keyword}'"
+
+    def test_tsundere_has_speech_pattern(self, llm_client, session):
+        """傲娇人格应有特定口癖描述。"""
+        session.personality = "tsundere"
+        messages = llm_client.build_messages(session, "你好")
+        system_prompt = messages[0]["content"]
+
+        # 傲娇口癖
+        assert "才不是" in system_prompt or "哼" in system_prompt
+
+    def test_unknown_personality_fallback(self, llm_client, session):
+        """未知人格应使用默认 normal。"""
+        session.personality = "unknown_personality"
+        messages = llm_client.build_messages(session, "你好")
+        system_prompt = messages[0]["content"]
+
+        # 应使用 normal 的 prompt
+        assert "温暖" in system_prompt

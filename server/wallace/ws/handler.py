@@ -185,7 +185,8 @@ class WebSocketHandler:
             session.treehouse_mode = bool(value)
 
         elif event == "shake":
-            pass  # TODO: LLM generate random fact → TTS push
+            # 异步触发冷知识生成，不阻塞事件循环
+            asyncio.create_task(self._orchestrator.push_random_fact(session))
 
         elif event == "touch":
             pass  # optional: log interaction

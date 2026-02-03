@@ -64,14 +64,50 @@ class TestASREngine:
             await engine.transcribe(np.random.randn(16000).astype(np.float32))
 
     def test_vad_empty_audio_no_speech(self, asr_config):
+        """空音频应返回无语音。"""
         engine = ASREngine(asr_config)
-        assert engine.vad_has_speech(np.array([], dtype=np.float32)) is False
+        assert engine.vad_has_speech(np.array([], dtype=np.float32)) == False
 
-    def test_vad_with_audio(self, asr_config):
-        """当前 placeholder 总返回 True。"""
+    def test_vad_silence_no_speech(self, asr_config):
+        """全零静音应检测为无语音。"""
         engine = ASREngine(asr_config)
-        audio = np.random.randn(16000).astype(np.float32)
-        assert engine.vad_has_speech(audio) is True
+        # 1 秒静音（全零）
+        silence = np.zeros(16000, dtype=np.float32)
+        assert engine.vad_has_speech(silence) == False
+
+    def test_vad_speech_detected(self, asr_config):
+        """高能量信号应检测为有语音。"""
+        engine = ASREngine(asr_config)
+        # 默认阈值为 0.5，需要 RMS > 0.5
+        # 使用大振幅正弦波（振幅 0.8，RMS ≈ 0.57 > 0.5）
+        t = np.linspace(0, 1, 16000, dtype=np.float32)
+        speech = 0.8 * np.sin(2 * np.pi * 1000 * t)
+        assert engine.vad_has_speech(speech) == True
+
+    def test_vad_low_energy_no_speech(self, asr_config):
+        """低能量信号应检测为无语音。"""
+        engine = ASREngine(asr_config)
+        # 低振幅随机噪声（RMS << 0.5）
+        low_noise = np.random.randn(16000).astype(np.float32) * 0.1
+        assert engine.vad_has_speech(low_noise) == False
+
+    def test_vad_threshold_boundary(self, asr_config):
+        """刚好超过阈值应检测为有语音。"""
+        engine = ASREngine(asr_config)
+        # 默认阈值为 0.5
+        # 生成 RMS 略高于阈值的常数信号
+        # RMS = sqrt(mean(x^2)) = |x| for constant signal
+        # 需要 RMS > 0.5，使用常数 0.6
+        signal = np.full(16000, 0.6, dtype=np.float32)
+        assert engine.vad_has_speech(signal) == True
+
+    def test_vad_below_threshold_no_speech(self, asr_config):
+        """刚好低于阈值应检测为无语音。"""
+        engine = ASREngine(asr_config)
+        # 默认阈值为 0.5
+        # RMS < 0.5 应无语音
+        signal = np.full(16000, 0.4, dtype=np.float32)
+        assert engine.vad_has_speech(signal) == False
 
     async def test_short_audio(self, asr_config):
         """极短音频 (<0.5s) 不应抛异常。"""
