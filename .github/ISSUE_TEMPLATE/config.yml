@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 学习路线图
+    url: https://github.com/skipmaple/Wallace/blob/main/doc/embedded-learning-roadmap.md
+    about: 查看完整的嵌入式开发学习路线图
+  - name: 📖 硬件规格
+    url: https://github.com/skipmaple/Wallace/blob/main/doc/spec.md
+    about: 查看完整的硬件规格文档
+  - name: 🛒 采购清单
+    url: https://github.com/skipmaple/Wallace/blob/main/doc/purchase-list.md
+    about: 查看硬件采购指南
