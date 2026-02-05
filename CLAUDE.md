@@ -82,7 +82,7 @@ Wallace/
 | `pipeline/tts.py` | Dual backend (EdgeTTS with MP3→PCM transcode via miniaudio, CosyVoice direct PCM), auto-fallback |
 | `emotion.py` | Regex extraction of `[mood:xxx]` tags, 8 mood enum values: happy, sad, thinking, angry, sleepy, surprised, tsundere, neutral |
 | `sensor.py` | Sensor data caching, LLM context generation, threshold alerts with debounce |
-| `memory/store.py` | JSON file persistence per user (`data/memory/{user_id}.json`), atomic writes, change detection, sync throttle |
+| `memory/store.py` | JSON file persistence per user (`server/data/memory/{user_id}.json`), atomic writes, change detection, sync throttle |
 | `care/scheduler.py` | APScheduler 3.x async jobs (sedentary/morning/evening), weather API, conflict-aware push |
 | `smarthome/mqtt.py` | aiomqtt wrapper, scene automation (sleep/wakeup), command forwarding |
 | `wakeword.py` | openWakeWord for wake word secondary confirmation (2s timeout) |
