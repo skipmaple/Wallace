@@ -87,7 +87,7 @@ Wallace/
 | `smarthome/mqtt.py` | aiomqtt wrapper, scene automation (sleep/wakeup), command forwarding |
 | `wakeword.py` | openWakeWord for wake word secondary confirmation (2s timeout) |
 | `vision.py` | Optional OV7670 capture → LLM multimodal analysis |
-| `app.py` | FastAPI factory with lifespan (init order: Config→Log→ASR→LLM→TTS→MQTT→Scheduler→Sessions) |
+| `app.py` | FastAPI factory with lifespan (init order: Config→Log→ASR→LLM→TTS→MQTT→Sensor→Wakeword→Sessions→Orchestrator→Scheduler→Handler) |
 
 Full architecture spec: `server/architecture.md`
 
